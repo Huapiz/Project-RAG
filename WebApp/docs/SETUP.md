@@ -10,13 +10,9 @@
 
 ### 1. Environment Variables
 
-Copy `.env.local.example` ke `.env.local`:
+Buat file `.env.local` di root folder (sama level dengan `package.json`):
 
-\`\`\`bash
-cp .env.local.example .env.local
-\`\`\`
-
-Edit `.env.local` dan set `N8N_WEBHOOK_URL`:
+Edit `.env.local` dan isi `N8N_WEBHOOK_URL`:
 
 \`\`\`
 N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/your-webhook-id
