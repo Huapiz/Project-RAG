@@ -1,0 +1,508 @@
+{
+  "name": "Project RAG W3",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "=Use vector store for project rag\n\nKamu adalah Athena, AI yang berperan sebagai teman informatif yang siap membantu kapan pun dibutuhkan. Gaya komunikasinya hangat, ramah, dan mudah diikuti. Ia mampu menjawab pertanyaan sederhana maupun kompleks dengan penjelasan yang jelas, sistematis, dan berbasis informasi yang akurat. Ketika topik yang dibahas bersifat teknis atau penting, AI mengubah nada menjadi lebih serius namun tetap sopan dan tidak menggurui.\n\nAI menjaga percakapan tetap nyaman dan efisien, memberikan jawaban yang relevan dan langsung ke inti permasalahan. Ia mampu menjelaskan langkah-langkah, konsep, maupun rekomendasi dengan cara yang mudah dipahami. Setiap jawaban disusun agar informatif, logis, dan up to date, sesuai standar kualitas asisten cerdas modern seperti ChatGPT, Gemini, atau Claude. Tujuan akhirnya adalah membantu pengguna dengan akurat tanpa membuat mereka bingung atau kewalahan.\n\nPanggil teman ngobrol mu dengan sapaan {{ $json.message.chat.first_name }}."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        176,
+        -64
+      ],
+      "id": "93ce1f69-a319-431c-95ea-60e0bb5d7bdc",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        112,
+        160
+      ],
+      "id": "92d7fb6c-e08d-47a8-84e0-3fa141c6ba58",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "C23JRXOwh0WEMPn5",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1VZBoekSfK45UeuAHL4s_O_sim-vXXYRs",
+          "mode": "list",
+          "cachedResultName": "Project RAG",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1VZBoekSfK45UeuAHL4s_O_sim-vXXYRs"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -912,
+        320
+      ],
+      "id": "d9f49057-aea6-4ad6-b345-19605ccc58f1",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "MDXuwZ156Qz0lfoX",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -688,
+        320
+      ],
+      "id": "4051b3b4-552b-4b5c-87b6-fb54ce3cad25",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "MDXuwZ156Qz0lfoX",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "project-rag",
+          "mode": "list",
+          "cachedResultName": "project-rag"
+        },
+        "options": {
+          "pineconeNamespace": "project-rag"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        -416,
+        96
+      ],
+      "id": "b763e4fc-1a48-4cda-80be-fa80c03b52f2",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "hyAafpB2uxTcLFbV",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -448,
+        320
+      ],
+      "id": "2ded0a4f-a6e9-422e-b352-6e3af7e6ae4f",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "C23JRXOwh0WEMPn5",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        320
+      ],
+      "id": "ef3def9d-d372-406e-a947-ed45ad12be27",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        528
+      ],
+      "id": "036a2047-1c25-410d-8b60-056e5935d604",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "description": "=Use this tool to answer user question"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        160
+      ],
+      "id": "c3e8df1c-3753-4111-8861-e2a087623c58",
+      "name": "Answer questions with a vector store"
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "project-rag",
+          "mode": "list",
+          "cachedResultName": "project-rag"
+        },
+        "options": {
+          "pineconeNamespace": " project-rag"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        272,
+        368
+      ],
+      "id": "e77572de-bf88-4842-8a99-9d29f27e99e1",
+      "name": "Pinecone Vector Store1",
+      "credentials": {
+        "pineconeApi": {
+          "id": "hyAafpB2uxTcLFbV",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        352,
+        576
+      ],
+      "id": "06dd0600-bdf1-44e6-96c2-d161f0a7acbd",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "C23JRXOwh0WEMPn5",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        560,
+        368
+      ],
+      "id": "226fac08-75c0-4d4b-a1a5-17b08ab9eb06",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "C23JRXOwh0WEMPn5",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        256,
+        160
+      ],
+      "id": "219e4ea4-e804-4257-ae20-08bd784f891f",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.textChunk }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        752,
+        -64
+      ],
+      "id": "bb71a728-b310-40e6-a971-2d1692d81493",
+      "name": "Send a text message",
+      "webhookId": "56c78295-b8c0-42f1-8f99-fd2576ce43e4",
+      "credentials": {
+        "telegramApi": {
+          "id": "8q0DAOxUkKpikKTw",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const maxLen = 4000;\nconst longTextRaw = $json.output;\n\nif (!longTextRaw) {\n    return [];\n}\n\n// 1. Membersihkan teks dari Markdown/HTML untuk menjamin Plain Text\n// Hapus semua * (bold), _ (italic), [link](url), dan tag HTML dasar\nlet longText = longTextRaw\n    .replace(/(\\*\\*|__|\\*|_)/g, '') // Hapus bold dan italic\n    .replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, '$1'); // Hapus link, tinggalkan teks link\n\nconst chunks = [];\nfor (let i = 0; i < longText.length; i += maxLen) {\n    chunks.push({\n        textChunk: longText.substring(i, i + maxLen)\n    });\n}\n\nreturn chunks;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        -64
+      ],
+      "id": "c17e85f0-1503-4ada-b19b-807123f29392",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -32,
+        -64
+      ],
+      "id": "9a22d736-908d-4563-bc43-a86b2d617fc2",
+      "name": "Telegram Trigger",
+      "webhookId": "0c1e96ee-4452-42be-b60d-03fb0c78352b",
+      "credentials": {
+        "telegramApi": {
+          "id": "8q0DAOxUkKpikKTw",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer questions with a vector store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store1": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "10c3ecd1-c3c1-4cd6-b560-e4f93fc2bfd6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "017cad2aeae0fda04337a520c836d090fb11e0642ac153763f89a467f058aafd"
+  },
+  "id": "jXr8IyBRUxdMtDgW",
+  "tags": []
+}
