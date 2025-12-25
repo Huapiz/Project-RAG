@@ -266,11 +266,11 @@ export default function ChatInterface({ userId, userEmail, initialConversations 
                   }}
                 >
                   <MessageSquare className="h-4 w-4 shrink-0" />
-                  <span className="flex-1 truncate text-sm">{conversation.title}</span>
+                  <span className="flex-1 min-w-0 text-sm truncate">{conversation.title}</span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="h-6 w-6 flex-shrink-0 transition-colors hover:bg-destructive/10"
                     onClick={(e) => {
                       e.stopPropagation()
                       deleteConversation(conversation.id)
