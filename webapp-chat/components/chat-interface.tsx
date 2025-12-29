@@ -17,6 +17,11 @@ interface ChatInterfaceProps {
   initialConversations: Conversation[]
 }
 
+const getRoleLabel = (role: string): string => {
+  if (role === "webapp") return "webapp"
+  return role
+}
+
 export default function ChatInterface({ userId, userEmail, initialConversations }: ChatInterfaceProps) {
   const [conversations, setConversations] = useState<Conversation[]>(initialConversations)
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null)
@@ -130,21 +135,17 @@ export default function ChatInterface({ userId, userEmail, initialConversations 
 
     const conversationId = currentConversation.id
 
-    // Save user message to database
-    const { data: savedUserMessage } = await supabase
-      .from("messages")
-      .insert({
-        conversation_id: conversationId,
-        user_id: userId,
-        role: "user",
-        content: userMessage,
-      })
-      .select()
-      .single()
-
-    if (savedUserMessage) {
-      setMessages((prev) => [...prev, savedUserMessage])
+    // Instead, create a temporary local message object for display
+    const tempUserMessage: Message = {
+      id: "temp-" + Date.now(),
+      conversation_id: conversationId,
+      user_id: userId,
+      role: "webapp",
+      content: userMessage,
+      created_at: new Date().toISOString(),
     }
+
+    setMessages((prev) => [...prev, tempUserMessage])
 
     // Update conversation title if it's the first message
     if (messages.length === 0) {
@@ -266,17 +267,17 @@ export default function ChatInterface({ userId, userEmail, initialConversations 
                   }}
                 >
                   <MessageSquare className="h-4 w-4 shrink-0" />
-                  <span className="flex-1 min-w-0 text-sm truncate">{conversation.title}</span>
+                  <span className="min-w-0 text-sm truncate">{conversation.title}</span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 flex-shrink-0 transition-colors hover:bg-destructive/10"
+                    className="h-6 w-6 flex-shrink-0 ml-auto transition-colors hover:bg-destructive/10"
                     onClick={(e) => {
                       e.stopPropagation()
                       deleteConversation(conversation.id)
                     }}
                   >
-                    <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                    <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
                   </Button>
                 </div>
               ))}
@@ -334,21 +335,23 @@ export default function ChatInterface({ userId, userEmail, initialConversations 
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                  className={`flex gap-3 ${message.role === "webapp" ? "justify-end" : "justify-start"}`}
                 >
                   {message.role === "assistant" && (
                     <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
                       <Bot className="h-4 w-4 text-primary" />
                     </div>
                   )}
-                  <div
-                    className={`max-w-[80%] px-4 py-3 rounded-2xl ${
-                      message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
-                    }`}
-                  >
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+                  <div className={`max-w-[80%] ${message.role === "webapp" ? "flex flex-col items-end" : ""}`}>
+                    <div
+                      className={`px-4 py-3 rounded-2xl ${
+                        message.role === "webapp" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+                    </div>
                   </div>
-                  {message.role === "user" && (
+                  {message.role === "webapp" && (
                     <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center shrink-0">
                       <User className="h-4 w-4 text-accent-foreground" />
                     </div>

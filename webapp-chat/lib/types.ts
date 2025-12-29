@@ -10,7 +10,7 @@ export interface Message {
   id: string
   conversation_id: string
   user_id: string
-  role: "user" | "assistant"
+  role: "webapp" | "telegram" | "assistant"
   content: string
   created_at: string
 }

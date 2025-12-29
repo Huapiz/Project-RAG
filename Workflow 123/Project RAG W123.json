@@ -4,15 +4,15 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "={{ $json.question }}",
+        "text": "={{ $('Code in JavaScript').item.json.content }}",
         "options": {
-          "systemMessage": "=Kamu adalah Athena, AI yang berperan sebagai teman informatif yang siap membantu kapan pun dibutuhkan. Gaya komunikasinya hangat, ramah, dan mudah diikuti. Ia mampu menjawab pertanyaan sederhana maupun kompleks dengan penjelasan yang jelas, sistematis, dan berbasis informasi yang akurat. Ketika topik yang dibahas bersifat teknis atau penting, AI mengubah nada menjadi lebih serius namun tetap sopan dan tidak menggurui.\n\nAI menjaga percakapan tetap nyaman dan efisien, memberikan jawaban yang relevan dan langsung ke inti permasalahan. Ia mampu menjelaskan langkah-langkah, konsep, maupun rekomendasi dengan cara yang mudah dipahami. Setiap jawaban disusun agar informatif, logis, dan up to date, sesuai standar kualitas asisten cerdas modern seperti ChatGPT, Gemini, atau Claude. Tujuan akhirnya adalah membantu pengguna dengan akurat tanpa membuat mereka bingung atau kewalahan.\n\nJawab \"{{$json.question}}\" Menggunakan Pinecone database"
+          "systemMessage": "=Kamu adalah Athena, AI yang berperan sebagai teman informatif yang siap membantu kapan pun dibutuhkan. Gaya komunikasinya hangat, ramah, dan mudah diikuti. Ia mampu menjawab pertanyaan sederhana maupun kompleks dengan penjelasan yang jelas, sistematis, dan berbasis informasi yang akurat. Ketika topik yang dibahas bersifat teknis atau penting, AI mengubah nada menjadi lebih serius namun tetap sopan dan tidak menggurui.\n\nAI menjaga percakapan tetap nyaman dan efisien, memberikan jawaban yang relevan dan langsung ke inti permasalahan. Ia mampu menjelaskan langkah-langkah, konsep, maupun rekomendasi dengan cara yang mudah dipahami. Setiap jawaban disusun agar informatif, logis, dan up to date, sesuai standar kualitas asisten cerdas modern seperti ChatGPT, Gemini, atau Claude. Tujuan akhirnya adalah membantu pengguna dengan akurat tanpa membuat mereka bingung atau kewalahan.\n\nUtamanakan Cari jawaban \"{{ $('Code in JavaScript').item.json.content }}\" di Memories Supabase (jika jawabannya tidak ada/tidak ketemu di Memories Supabase, jika sudah ada/ketemu langsung jawab), setelah itu ke Pinecone database (jika jawabannya tidak ada/tidak ketemu di Pinecone database, jika sudah ada/ketemu langsung jawab), dan terkahir ke SerpAPI.\n\nJika semua proses di AI Agent sudah selesai, simpan semua data di Supabase.\n\n# Memories (Supabase)\nIni adalah **fakta terakhir yang tersimpan** yang dikumpulkan dari pengguna (termasuk tanggal/waktu).\n{{ $json.ConversationMemories.toJsonString() }}"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3,
       "position": [
-        416,
+        864,
         48
       ],
       "id": "93ce1f69-a319-431c-95ea-60e0bb5d7bdc",
@@ -32,7 +32,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        240,
+        688,
         240
       ],
       "id": "92d7fb6c-e08d-47a8-84e0-3fa141c6ba58",
@@ -67,8 +67,8 @@
       "type": "n8n-nodes-base.googleDriveTrigger",
       "typeVersion": 1,
       "position": [
-        -912,
-        320
+        144,
+        416
       ],
       "id": "d9f49057-aea6-4ad6-b345-19605ccc58f1",
       "name": "Google Drive Trigger",
@@ -92,8 +92,8 @@
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
       "position": [
-        -688,
-        320
+        320,
+        416
       ],
       "id": "4051b3b4-552b-4b5c-87b6-fb54ce3cad25",
       "name": "Download file",
@@ -120,8 +120,8 @@
       "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
       "typeVersion": 1.3,
       "position": [
-        -416,
-        96
+        496,
+        416
       ],
       "id": "b763e4fc-1a48-4cda-80be-fa80c03b52f2",
       "name": "Pinecone Vector Store",
@@ -139,8 +139,8 @@
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
       "typeVersion": 1.2,
       "position": [
-        -448,
-        320
+        416,
+        592
       ],
       "id": "2ded0a4f-a6e9-422e-b352-6e3af7e6ae4f",
       "name": "Embeddings OpenAI",
@@ -160,8 +160,8 @@
       "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
       "typeVersion": 1.1,
       "position": [
-        -320,
-        320
+        544,
+        592
       ],
       "id": "ef3def9d-d372-406e-a947-ed45ad12be27",
       "name": "Default Data Loader"
@@ -173,8 +173,8 @@
       "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
       "typeVersion": 1,
       "position": [
-        -240,
-        528
+        624,
+        720
       ],
       "id": "036a2047-1c25-410d-8b60-056e5935d604",
       "name": "Recursive Character Text Splitter"
@@ -186,7 +186,7 @@
       "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
       "typeVersion": 1.1,
       "position": [
-        624,
+        976,
         240
       ],
       "id": "c3e8df1c-3753-4111-8861-e2a087623c58",
@@ -207,7 +207,7 @@
       "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
       "typeVersion": 1.3,
       "position": [
-        576,
+        832,
         400
       ],
       "id": "e77572de-bf88-4842-8a99-9d29f27e99e1",
@@ -226,8 +226,8 @@
       "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
       "typeVersion": 1.2,
       "position": [
-        656,
-        608
+        944,
+        528
       ],
       "id": "06dd0600-bdf1-44e6-96c2-d161f0a7acbd",
       "name": "Embeddings OpenAI1",
@@ -252,7 +252,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        896,
+        1088,
         400
       ],
       "id": "226fac08-75c0-4d4b-a1a5-17b08ab9eb06",
@@ -266,20 +266,6 @@
     },
     {
       "parameters": {
-        "sessionIdType": "customKey",
-        "sessionKey": "={{ $json.question }}"
-      },
-      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
-      "typeVersion": 1.3,
-      "position": [
-        384,
-        240
-      ],
-      "id": "219e4ea4-e804-4257-ae20-08bd784f891f",
-      "name": "Simple Memory"
-    },
-    {
-      "parameters": {
         "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
         "text": "={{ $json.output }}",
         "additionalFields": {}
@@ -287,7 +273,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1040,
+        1360,
         -32
       ],
       "id": "bb71a728-b310-40e6-a971-2d1692d81493",
@@ -310,7 +296,7 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
-        32,
+        144,
         -48
       ],
       "id": "9a22d736-908d-4563-bc43-a86b2d617fc2",
@@ -330,7 +316,7 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
       "position": [
-        1040,
+        1360,
         128
       ],
       "id": "ac76da2b-ae0c-4d7c-81e4-68d6a4a6f790",
@@ -346,7 +332,7 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        32,
+        144,
         128
       ],
       "id": "7ffda756-0b52-4b0d-815c-4f20592593a8",
@@ -381,7 +367,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        768,
+        1168,
         48
       ],
       "id": "ddd14537-d5a9-45f8-9dce-dcb2cc0825ba",
@@ -390,12 +376,12 @@
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "return {\n  source: $json.message ? \"telegram\" : \"webapp\",\n  question: $json.message?.text || $json.body?.message\n};\n"
+        "jsCode": "return {\n  role: $json.message ? \"telegram\" : \"webapp\",\n\n  content: $json.message?.text || $json.body?.message,\n\n  // ID pengirim\n  user_id: $json.message?.from?.id || $json.body?.userId || \"unknown\",\n\n  // ID chat (khusus Telegram, penting kalau mau reply)\n  conversation_id: $json.message?.chat?.id || $json.body?.conversationId\n};\n\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        256,
+        336,
         48
       ],
       "id": "6705970c-05de-4f83-ad37-597b861c64f2",
@@ -411,7 +397,7 @@
       "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
       "typeVersion": 1,
       "position": [
-        512,
+        1232,
         240
       ],
       "id": "dfd3aa38-10de-4802-807f-965257cec4ac",
@@ -422,6 +408,122 @@
           "name": "SerpAPI account"
         }
       }
+    },
+    {
+      "parameters": {
+        "tableId": "messages",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "conversation_id",
+              "fieldValue": "={{ $('Code in JavaScript').item.json.conversation_id }}"
+            },
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('Code in JavaScript').item.json.user_id }}"
+            },
+            {
+              "fieldId": "role",
+              "fieldValue": "={{ $('Code in JavaScript').item.json.role }}"
+            },
+            {
+              "fieldId": "content",
+              "fieldValue": "={{ $('Code in JavaScript').item.json.content }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        848,
+        240
+      ],
+      "id": "7dd981ea-a7cd-4f09-9403-41edefd23837",
+      "name": "Save Conversation in Supabase",
+      "credentials": {
+        "supabaseApi": {
+          "id": "CcPy8Eobpgu0SJZL",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "messages",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "conversation_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.conversation_id }}"
+            },
+            {
+              "keyName": "user_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.user_id }}"
+            },
+            {
+              "keyName": "role",
+              "condition": "eq",
+              "keyValue": "={{ $json.role }}"
+            },
+            {
+              "keyName": "content",
+              "condition": "eq",
+              "keyValue": "={{ $json.content }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        512,
+        48
+      ],
+      "id": "917ab32c-80c8-4e14-8e5e-f50b74de1a35",
+      "name": "Get many rows",
+      "credentials": {
+        "supabaseApi": {
+          "id": "CcPy8Eobpgu0SJZL",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "ConversationMemories",
+        "include": "specifiedFields",
+        "fieldsToInclude": "content, created_at",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        688,
+        48
+      ],
+      "id": "f3bcdd5a-b3aa-4442-b651-b49edddce5e7",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "content": "Pinecone database (get GDrive)",
+        "height": 496,
+        "width": 704
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        96,
+        368
+      ],
+      "typeVersion": 1,
+      "id": "3bdb2c50-7e3f-43c1-8263-c9cc0951abef",
+      "name": "Sticky Note"
     }
   ],
   "pinData": {},
@@ -547,17 +649,6 @@
         ]
       ]
     },
-    "Simple Memory": {
-      "ai_memory": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Telegram Trigger": {
       "main": [
         [
@@ -602,7 +693,7 @@
       "main": [
         [
           {
-            "node": "AI Agent",
+            "node": "Get many rows",
             "type": "main",
             "index": 0
           }
@@ -619,13 +710,51 @@
           }
         ]
       ]
+    },
+    "Save Conversation in Supabase": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "fbfc0170-9af3-4e91-8e1d-05e1d37d6685",
+  "versionId": "7e884532-6921-4566-8f82-b51761487965",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "017cad2aeae0fda04337a520c836d090fb11e0642ac153763f89a467f058aafd"
