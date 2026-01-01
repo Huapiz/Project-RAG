@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
         conversationId,
         userId,
         timestamp: new Date().toISOString(),
+        role: "webapp",
       }),
     })
 

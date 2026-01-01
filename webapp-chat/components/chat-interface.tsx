@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useRef, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -17,12 +16,8 @@ interface ChatInterfaceProps {
   initialConversations: Conversation[]
 }
 
-const getRoleLabel = (role: string): string => {
-  if (role === "webapp") return "webapp"
-  return role
-}
-
 export default function ChatInterface({ userId, userEmail, initialConversations }: ChatInterfaceProps) {
+  // Gunakan initialConversations sebagai state awal
   const [conversations, setConversations] = useState<Conversation[]>(initialConversations)
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
@@ -34,6 +29,7 @@ export default function ChatInterface({ userId, userEmail, initialConversations 
   const router = useRouter()
   const supabase = createClient()
 
+  // Auto-scroll ke bawah saat ada pesan baru
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
@@ -42,9 +38,9 @@ export default function ChatInterface({ userId, userEmail, initialConversations 
     scrollToBottom()
   }, [messages])
 
-  // Load messages when active conversation changes
+  // Load pesan saat chat aktif berubah
   useEffect(() => {
-    if (activeConversation) {
+    if (activeConversation && activeConversation.id) {
       loadMessages(activeConversation.id)
     } else {
       setMessages([])
@@ -66,15 +62,19 @@ export default function ChatInterface({ userId, userEmail, initialConversations 
   const createNewConversation = async () => {
     const { data, error } = await supabase
       .from("conversations")
-      .insert({
-        user_id: userId,
-        title: "New Chat",
-      })
+      .upsert(
+        {
+          user_id: userId,
+          title: "New Chat",
+        },
+        { onConflict: "id" }
+      )
       .select()
       .single()
 
     if (!error && data) {
-      setConversations([data, ...conversations])
+      // PERBAIKAN: Gunakan prev state agar list tidak hilang
+      setConversations((prev) => [data, ...prev])
       setActiveConversation(data)
       setMessages([])
       setIsSidebarOpen(false)
@@ -84,7 +84,9 @@ export default function ChatInterface({ userId, userEmail, initialConversations 
   const deleteConversation = async (conversationId: string) => {
     await supabase.from("conversations").delete().eq("id", conversationId)
 
-    setConversations(conversations.filter((c) => c.id !== conversationId))
+    // PERBAIKAN: Gunakan prev state
+    setConversations((prev) => prev.filter((c) => c.id !== conversationId))
+    
     if (activeConversation?.id === conversationId) {
       setActiveConversation(null)
       setMessages([])
@@ -99,9 +101,15 @@ export default function ChatInterface({ userId, userEmail, initialConversations 
       .update({ title, updated_at: new Date().toISOString() })
       .eq("id", conversationId)
 
-    setConversations(
-      conversations.map((c) => (c.id === conversationId ? { ...c, title, updated_at: new Date().toISOString() } : c)),
+    // PERBAIKAN: Gunakan prev state untuk update judul di sidebar secara realtime
+    setConversations((prev) =>
+      prev.map((c) => (c.id === conversationId ? { ...c, title, updated_at: new Date().toISOString() } : c))
     )
+    
+    // Update juga di activeConversation jika sedang aktif
+    if (activeConversation?.id === conversationId) {
+        setActiveConversation((prev) => prev ? { ...prev, title } : null)
+    }
   }
 
   const sendMessage = async (e: React.FormEvent) => {
@@ -110,24 +118,32 @@ export default function ChatInterface({ userId, userEmail, initialConversations 
 
     let currentConversation = activeConversation
 
-    // Create new conversation if none exists
+    // 1. Jika belum ada chat aktif, buat baru DULU
     if (!currentConversation) {
       const { data, error } = await supabase
         .from("conversations")
-        .insert({
-          user_id: userId,
-          title: "New Chat",
-        })
+        .upsert(
+          {
+            user_id: userId,
+            title: "New Chat",
+          },
+          { onConflict: "id" }
+        )
         .select()
         .single()
 
       if (error || !data) return
+      
       currentConversation = data
-      setConversations([data, ...conversations])
+      
+      // PERBAIKAN: Update state lokal & Sidebar TANPA reload
+      setConversations((prev) => [data, ...prev])
       setActiveConversation(data)
+      
+      // router.refresh() <-- INI DIHAPUS, karena sudah di-handle state di atas
     }
 
-    if (!currentConversation) return
+    if (!currentConversation || !currentConversation.id) return
 
     const userMessage = inputValue.trim()
     setInputValue("")
@@ -135,7 +151,7 @@ export default function ChatInterface({ userId, userEmail, initialConversations 
 
     const conversationId = currentConversation.id
 
-    // Instead, create a temporary local message object for display
+    // Optimistic UI: Tampilkan pesan user segera
     const tempUserMessage: Message = {
       id: "temp-" + Date.now(),
       conversation_id: conversationId,
@@ -147,7 +163,7 @@ export default function ChatInterface({ userId, userEmail, initialConversations 
 
     setMessages((prev) => [...prev, tempUserMessage])
 
-    // Update conversation title if it's the first message
+    // Jika ini pesan pertama, update judul chat di sidebar
     if (messages.length === 0) {
       updateConversationTitle(conversationId, userMessage)
     }
@@ -159,15 +175,31 @@ export default function ChatInterface({ userId, userEmail, initialConversations 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: userMessage,
-          conversationId: conversationId,
-          userId: userId,
+          conversationId,
+          userId,
         }),
       })
 
-      const data = await response.json()
-      const assistantResponse = data.response || "Sorry, I could not process your request."
+      const rawText = await response.text()
 
-      // Save assistant message to database
+      if (!rawText || rawText.trim() === "") {
+        throw new Error("Webhook returned empty response")
+      }
+
+      let data: any
+      try {
+        data = JSON.parse(rawText)
+      } catch (err) {
+        console.error("Invalid JSON from webhook:", rawText)
+        throw new Error("Invalid JSON response from AI webhook")
+      }
+
+      const assistantResponse =
+        typeof data.response === "string" && data.response.trim() !== ""
+          ? data.response
+          : "Sorry, I could not process your request."
+
+      // Simpan jawaban AI ke database
       const { data: savedAssistantMessage } = await supabase
         .from("messages")
         .insert({
@@ -183,10 +215,11 @@ export default function ChatInterface({ userId, userEmail, initialConversations 
         setMessages((prev) => [...prev, savedAssistantMessage])
       }
 
-      // Update conversation timestamp
+      // Update timestamp percakapan agar naik ke atas (opsional, perlu logic sorting di state jika mau)
       await supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", conversationId)
-    } catch {
-      // Save error message
+      
+    } catch (err) {
+      // Simpan pesan error
       const { data: errorMessage } = await supabase
         .from("messages")
         .insert({
@@ -220,9 +253,8 @@ export default function ChatInterface({ userId, userEmail, initialConversations 
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-50 w-72 bg-card border-r border-border transform transition-transform duration-200 ease-in-out ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        }`}
+        className={`fixed md:static inset-y-0 left-0 z-50 w-80 md:w-80 lg:w-80 bg-card border-r border-border transform transition-transform duration-200 ease-in-out
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
       >
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
@@ -253,34 +285,67 @@ export default function ChatInterface({ userId, userEmail, initialConversations 
           {/* Conversations List */}
           <ScrollArea className="flex-1 px-2 py-2">
             <div className="space-y-1">
-              {conversations.map((conversation) => (
-                <div
-                  key={conversation.id}
-                  className={`group flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
-                    activeConversation?.id === conversation.id
-                      ? "bg-accent text-accent-foreground"
-                      : "hover:bg-muted text-foreground"
-                  }`}
-                  onClick={() => {
-                    setActiveConversation(conversation)
-                    setIsSidebarOpen(false)
-                  }}
-                >
-                  <MessageSquare className="h-4 w-4 shrink-0" />
-                  <span className="min-w-0 text-sm truncate">{conversation.title}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 flex-shrink-0 ml-auto transition-colors hover:bg-destructive/10"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      deleteConversation(conversation.id)
+              {conversations.map((conversation) => {
+                if (!conversation.id) return null
+                
+                const isActive = activeConversation?.id === conversation.id
+
+                return (
+                  <div
+                    key={conversation.id}
+                    onClick={() => {
+                      setActiveConversation(conversation)
+                      setIsSidebarOpen(false)
                     }}
+                    className={`
+                      group
+                      relative
+                      w-full
+                      px-3 py-2
+                      rounded-lg
+                      cursor-pointer
+                      transition-colors
+                      ${
+                        isActive
+                          ? "bg-accent text-accent-foreground"
+                          : "hover:bg-muted text-foreground"
+                      }
+                    `}
                   >
-                    <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                  </Button>
-                </div>
-              ))}
+                    {/* ICON + TITLE */}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <MessageSquare className="h-4 w-4 shrink-0" />
+
+                      <span className="text-sm truncate pr-10">
+                        {conversation.title}
+                      </span>
+                    </div>
+
+                    {/* TRASH ICON */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (conversation.id) deleteConversation(conversation.id)
+                      }}
+                      className={`
+                        absolute
+                        right-2
+                        top-1/2
+                        -translate-y-1/2
+                        text-muted-foreground
+                        hover:text-destructive
+                        transition-opacity
+                        ${isActive ? "md:opacity-100" : "opacity-0"}
+                        lg:opacity-0
+                        lg:group-hover:opacity-100
+                      `}
+                      aria-label="Delete conversation"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                )
+              })}
             </div>
           </ScrollArea>
 
@@ -332,9 +397,9 @@ export default function ChatInterface({ userId, userEmail, initialConversations 
             </div>
           ) : (
             <div className="max-w-3xl mx-auto space-y-4">
-              {messages.map((message) => (
+              {messages.map((message, index) => (
                 <div
-                  key={message.id}
+                  key={message.id || index}
                   className={`flex gap-3 ${message.role === "webapp" ? "justify-end" : "justify-start"}`}
                 >
                   {message.role === "assistant" && (
