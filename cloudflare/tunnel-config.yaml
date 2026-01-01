@@ -1,0 +1,13 @@
+tunnel: a7beec0c-2af0-4639-959b-d683c43a4d81
+credentials-file: /root/.cloudflared/a7beec0c-2af0-4639-959b-d683c43a4d81.json
+
+ingress:
+  # Menghubungkan n8n yang jalan di port 5678 ke subdomain
+  - hostname: n8n-rag.haqeemproject.site
+    service: http://localhost:5678
+
+  # Note: haqeemproject.site tidak dimasukkan di sini karena sudah di-hosting di Vercel.
+  # Vercel dihubungkan langsung via DNS CNAME di dashboard Cloudflare.
+
+  # Catch-all rule: memberikan error 404 untuk request lain yang masuk ke tunnel ini
+  - service: http_status:404
